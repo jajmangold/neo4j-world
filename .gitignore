@@ -1,0 +1,9 @@
+.venv/
+data/
+logs/
+plugins/*.jar
+import/*.dump
+import/*.backup
+__pycache__/
+*.py[cod]
+.env
