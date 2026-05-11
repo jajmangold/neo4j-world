@@ -50,6 +50,9 @@ python3 scripts/ingest_render_manifest.py \
 
 The render manifest importer creates or updates `Episode`, `Scene`, `RenderRun`, `Asset`, `Character`, `Voice`, and `VisualIdentity` nodes, then links them with `PART_OF`, `RENDERS`, `USES_ASSET`, `PRODUCED_ASSET`, `APPEARS_IN`, `HAS_VOICE`, and `HAS_VISUAL_IDENTITY`.
 
+Relative asset paths in a render manifest are resolved under `MICRODRAMA_PROJECT_ROOT`, which defaults to
+`/srv/nvme-data/containers/projects/microdramas` for the standalone script.
+
 ## Model Shape
 
 Core node labels:

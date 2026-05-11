@@ -10,6 +10,8 @@ from typing import Any
 
 from neo4j import GraphDatabase
 
+PROJECT_ROOT = Path(os.environ.get("MICRODRAMA_PROJECT_ROOT", "/srv/nvme-data/containers/projects/microdramas"))
+
 
 def read_json(path: str | Path) -> dict[str, Any]:
     with Path(path).expanduser().open("r", encoding="utf-8") as handle:
@@ -31,7 +33,10 @@ def asset_type(path: str, fallback: str) -> str:
 def abs_path(path: str) -> str:
     if not path:
         return ""
-    return str(Path(path).expanduser().resolve())
+    expanded = Path(path).expanduser()
+    if not expanded.is_absolute():
+        expanded = PROJECT_ROOT / expanded
+    return str(expanded.absolute())
 
 
 def collect_assets(render: dict[str, Any]) -> list[dict[str, Any]]:
