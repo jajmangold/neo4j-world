@@ -33,3 +33,8 @@ Keep prompt context short:
 - one sentence of current pressure
 - one sentence of scene goal
 
+## Tooling
+
+Use `scripts/ingest_story_event.py` after a scene decision becomes canonical. Event JSON should include participants, relationship deltas, reputation deltas, arc updates, secret updates, and memories when they differ from the event summary.
+
+Use `scripts/export_memory_context.py` before story planning or shot prompting. Prefer the Markdown export for LLM planner prompts and the JSON export when a Prefect/LangGraph node needs structured context.

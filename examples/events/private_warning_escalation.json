@@ -1,0 +1,71 @@
+{
+  "id": "event_smoke_private_warning_001",
+  "type": "PRIVATE_WARNING",
+  "summary": "The lead warns an unseen rival that the observatory incident will not stay buried.",
+  "world_time": "2026-01-01T22:14:00",
+  "severity": 0.42,
+  "visibility": 0.18,
+  "source": "smoke_scene_manual",
+  "episode_id": "episode_smoke_001",
+  "scene_id": "scene_smoke_001",
+  "participants": [
+    {
+      "character_id": "char_smoke_lead",
+      "role": "instigator"
+    },
+    {
+      "character_id": "char_camille_voss",
+      "role": "offscreen_pressure"
+    }
+  ],
+  "relationship_deltas": [
+    {
+      "source_character_id": "char_smoke_lead",
+      "target_character_id": "char_camille_voss",
+      "type": "rivalry_pressure",
+      "deltas": {
+        "trust": -0.08,
+        "resentment": 0.14,
+        "tension": 0.18,
+        "fear_of_loss": 0.05
+      }
+    },
+    {
+      "source_character_id": "char_camille_voss",
+      "target_character_id": "char_smoke_lead",
+      "type": "rivalry_pressure",
+      "deltas": {
+        "trust": -0.05,
+        "resentment": 0.10,
+        "tension": 0.16
+      }
+    }
+  ],
+  "reputation_deltas": [
+    {
+      "character_id": "char_smoke_lead",
+      "dimension": "dangerous_mystique",
+      "delta": 0.12
+    }
+  ],
+  "arc_updates": [
+    {
+      "arc_id": "arc_smoke_observatory_secret",
+      "amount": 0.16
+    }
+  ],
+  "memories": [
+    {
+      "character_id": "char_smoke_lead",
+      "summary": "He made the observatory warning and committed himself to the secret.",
+      "salience": 0.72,
+      "valence": -0.18
+    },
+    {
+      "character_id": "char_camille_voss",
+      "summary": "The observatory warning made the lead harder to dismiss.",
+      "salience": 0.58,
+      "valence": -0.08
+    }
+  ]
+}

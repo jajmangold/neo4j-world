@@ -53,6 +53,28 @@ The render manifest importer creates or updates `Episode`, `Scene`, `RenderRun`,
 Relative asset paths in a render manifest are resolved under `MICRODRAMA_PROJECT_ROOT`, which defaults to
 `/srv/nvme-data/containers/projects/microdramas` for the standalone script.
 
+## Ingest Story Events
+
+Apply durable story consequences from an event JSON file:
+
+```bash
+python3 scripts/ingest_story_event.py \
+  --event-json examples/events/private_warning_escalation.json
+```
+
+The event importer creates or updates `Event`, `Character`, `Episode`, `Scene`, `Arc`, `Secret`, and `Memory` nodes. It also applies bounded deltas to directed `RELATES_TO` edges so trust, resentment, attraction, dependency, tension, fear of loss, and power imbalance persist between scenes.
+
+Export compressed prompt context for a character or scene:
+
+```bash
+python3 scripts/export_memory_context.py \
+  --scene-manifest /srv/nvme-data/containers/projects/microdramas/scenes/smoke_scene_manifest.json \
+  --output-md /tmp/smoke_memory_context.md \
+  --output-json /tmp/smoke_memory_context.json
+```
+
+Use the Markdown export in planner prompts and the JSON export for automation.
+
 ## Model Shape
 
 Core node labels:
