@@ -7,3 +7,4 @@ import/*.backup
 __pycache__/
 *.py[cod]
 .env
+_ARCHIVE_NOTE.md

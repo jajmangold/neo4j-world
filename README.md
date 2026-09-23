@@ -1,6 +1,10 @@
 # Neo4j World Graph
 
-Persistent graph database for the micro-drama world simulation.
+Persistent graph database for micro-drama world simulation. Manages characters, scenes, episodes, events, arcs, and relationship drama state (trust, resentment, attraction, dependency, tension, fear of loss, power imbalance) as a property graph.
+
+## License
+
+[MIT](LICENSE)
 
 ## Service
 
