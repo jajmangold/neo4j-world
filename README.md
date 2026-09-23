@@ -1,18 +1,18 @@
 # Neo4j World Graph
 
-A persistent graph database for narrative world simulation. Characters have relationships with numerical drama state -- trust, resentment, attraction, tension, fear of loss, power imbalance -- that changes when events happen.
+[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](./LICENSE)
+[![Docker](https://img.shields.io/badge/Docker-ready-blue.svg)](https://hub.docker.com/)
+[![Neo4j](https://img.shields.io/badge/Neo4j-5.x-red.svg)](https://neo4j.com/)
 
-## License
+A persistent graph database for narrative world simulation where **relationships carry numerical emotions**. Trust, resentment, attraction, tension, fear of loss, power imbalance -- all stored as edge properties that update when events happen.
 
-[MIT](LICENSE)
+---
 
 ## The Idea
 
 Most story engines track "who knows whom." This tracks *how they feel about each other*, numerically, and updates those feelings when things happen.
 
 A betrayal doesn't just create a plot point. It applies `trust: -0.30, resentment: +0.40, tension: +0.15` to the relationship edge. A near-kiss applies `attraction: +0.15, tension: +0.25`. The numbers persist across scenes and episodes, so the AI (or a human writer) can query the current emotional state of any relationship and write accordingly.
-
-The graph also tracks secrets, desires, memories, arcs, and reputation -- all as nodes with structured relationships to characters and events.
 
 ## Schema
 
@@ -61,11 +61,13 @@ Full taxonomy in [`docs/event_taxonomy.md`](docs/event_taxonomy.md).
 
 The world sim enforces continuity rules to prevent chaos:
 
-- **Scandal cooldowns** -- major reveals need downtime before the next one
-- **Escalation budget** -- every arc has limited escalation per episode
-- **Emotional rhythm** -- contrast high-tension beats with humor, tenderness, or embarrassment
-- **Arc spacing** -- don't resolve every active arc in the same episode
-- **Consequence persistence** -- large events alter future prompts, wardrobe, posture, and relationships
+| Governor | Purpose |
+|----------|---------|
+| **Scandal cooldowns** | Major reveals need downtime before the next one |
+| **Escalation budget** | Every arc has limited escalation per episode |
+| **Emotional rhythm** | Contrast high-tension beats with humor, tenderness, or embarrassment |
+| **Arc spacing** | Don't resolve every active arc in the same episode |
+| **Consequence persistence** | Large events alter future prompts, wardrobe, posture, and relationships |
 
 Rules in [`docs/narrative_governors.md`](docs/narrative_governors.md).
 
@@ -98,7 +100,16 @@ python3 scripts/export_memory_context.py \
   --output-json /tmp/memory_context.json
 ```
 
-The Markdown export is designed for planner prompts. The JSON export is for automation.
+## Features
+
+| Capability | Description |
+|-----------|-------------|
+| Drama-state relationships | Numerical emotion fields on every character edge |
+| Event taxonomy | Typed events with deterministic delta application |
+| Narrative governors | Continuity enforcement and pacing rules |
+| Memory export | Compressed context for LLM planner prompts |
+| Cypher-native schema | Full graph model in Cypher, no ORM layer |
+| Seed data | Sample world with characters, traits, and desires |
 
 ## Who This Is For
 
@@ -107,9 +118,19 @@ The Markdown export is designed for planner prompts. The JSON export is for auto
 - **Interactive fiction** authors who want mechanical consequences for player choices
 - **AI video pipelines** that need to track character continuity across generated scenes
 
-## Full Documentation
+## Documentation
 
-- [`docs/relationship_update_rules.md`](docs/relationship_update_rules.md) -- edge field ranges, delta examples, governor rules
-- [`docs/event_taxonomy.md`](docs/event_taxonomy.md) -- event types, required fields, quality rules
-- [`docs/narrative_governors.md`](docs/narrative_governors.md) -- continuity enforcement, episode shape, anti-patterns
-- [`docs/memory_compression.md`](docs/memory_compression.md) -- exporting compressed context for LLM prompts
+| Document | Purpose |
+|----------|---------|
+| [`docs/relationship_update_rules.md`](docs/relationship_update_rules.md) | Edge field ranges, delta examples, governor rules |
+| [`docs/event_taxonomy.md`](docs/event_taxonomy.md) | Event types, required fields, quality rules |
+| [`docs/narrative_governors.md`](docs/narrative_governors.md) | Continuity enforcement, episode shape, anti-patterns |
+| [`docs/memory_compression.md`](docs/memory_compression.md) | Exporting compressed context for LLM prompts |
+
+## Contributing
+
+This is part of the [Microdrama](https://github.com/jajmangold/microdrama-orchestrator) ecosystem. Issues and PRs welcome.
+
+## License
+
+[MIT](LICENSE)
