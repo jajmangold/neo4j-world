@@ -1,120 +1,115 @@
 # Neo4j World Graph
 
-Persistent graph database for micro-drama world simulation. Manages characters, scenes, episodes, events, arcs, and relationship drama state (trust, resentment, attraction, dependency, tension, fear of loss, power imbalance) as a property graph.
+A persistent graph database for narrative world simulation. Characters have relationships with numerical drama state -- trust, resentment, attraction, tension, fear of loss, power imbalance -- that changes when events happen.
 
 ## License
 
 [MIT](LICENSE)
 
-## Service
+## The Idea
 
-- Browser: `http://127.0.0.1:7474`
-- Bolt: `bolt://127.0.0.1:7687`
-- User: `neo4j`
-- Default local password: `microdrama-local`
+Most story engines track "who knows whom." This tracks *how they feel about each other*, numerically, and updates those feelings when things happen.
 
-Override the password by setting `NEO4J_PASSWORD` before starting Compose.
+A betrayal doesn't just create a plot point. It applies `trust: -0.30, resentment: +0.40, tension: +0.15` to the relationship edge. A near-kiss applies `attraction: +0.15, tension: +0.25`. The numbers persist across scenes and episodes, so the AI (or a human writer) can query the current emotional state of any relationship and write accordingly.
 
-## Start
+The graph also tracks secrets, desires, memories, arcs, and reputation -- all as nodes with structured relationships to characters and events.
+
+## Schema
+
+```mermaid
+erDiagram
+    Character ||--o{ RELATES_TO : has
+    Character ||--o{ APPEARS_IN : in
+    Character ||--o{ HAS_TRAIT : with
+    Character ||--o{ HAS_DESIRE : wants
+    Character ||--o{ REMEMBERS : remembers
+    Character ||--o{ KNOWS_SECRET : knows
+    Scene ||--o{ PART_OF : episode
+    Scene ||--o{ USES_ASSET : uses
+    Event ||--o{ AFFECTS : impacts
+    Event ||--o{ ADVANCES : arc
+    Event ||--o{ REVEALS : secret
+```
+
+### Relationship Edge Fields
+
+| Field | Range | Description |
+|-------|-------|-------------|
+| `attraction` | 0.0 - 1.0 | Romantic/physical pull |
+| `trust` | 0.0 - 1.0 | Reliability and honesty |
+| `resentment` | 0.0 - 1.0 | Grudge accumulation |
+| `dependency` | 0.0 - 1.0 | Need for the other character |
+| `tension` | 0.0 - 1.0 | Unresolved friction |
+| `fear_of_loss` | 0.0 - 1.0 | Attachment anxiety |
+| `power_imbalance` | -1.0 - 1.0 | Dominance (negative = one-sided) |
+
+### Event Types
+
+Events are the *consequence layer*. Each event type applies known deltas to relationship edges:
+
+| Event | trust | resentment | tension | attraction |
+|-------|-------|------------|---------|------------|
+| `BETRAYAL` | -0.30 | +0.40 | +0.15 | varies |
+| `NEAR_KISS` | +/-0.05 | -- | +0.25 | +0.15 |
+| `PUBLIC_HUMILIATION` | -0.35 | +0.45 | +0.10 | -- |
+| `RECONCILIATION` | +0.15 | -0.15 | stays high | -- |
+| `SECRET_REVEALED` | varies | +0.20 | +0.20 | -- |
+
+Full taxonomy in [`docs/event_taxonomy.md`](docs/event_taxonomy.md).
+
+## Narrative Governors
+
+The world sim enforces continuity rules to prevent chaos:
+
+- **Scandal cooldowns** -- major reveals need downtime before the next one
+- **Escalation budget** -- every arc has limited escalation per episode
+- **Emotional rhythm** -- contrast high-tension beats with humor, tenderness, or embarrassment
+- **Arc spacing** -- don't resolve every active arc in the same episode
+- **Consequence persistence** -- large events alter future prompts, wardrobe, posture, and relationships
+
+Rules in [`docs/narrative_governors.md`](docs/narrative_governors.md).
+
+## Quick Start
 
 ```bash
 docker compose up -d
-```
 
-## Apply Schema
-
-The compose file mounts `./import` to `/var/lib/neo4j/import`. Copy schema files there or run them from `/schema` through the host.
-
-```bash
+# Apply schema
 cp schema/*.cypher import/
-docker compose exec -T neo4j-world cypher-shell -u neo4j -p microdrama-local -f /var/lib/neo4j/import/world_schema.cypher
-docker compose exec -T neo4j-world cypher-shell -u neo4j -p microdrama-local -f /var/lib/neo4j/import/seed_world.cypher
+docker compose exec -T neo4j-world cypher-shell -u neo4j -p microdrama-local \
+  -f /var/lib/neo4j/import/world_schema.cypher
+docker compose exec -T neo4j-world cypher-shell -u neo4j -p microdrama-local \
+  -f /var/lib/neo4j/import/seed_world.cypher
 ```
 
-## Ingest Assets
-
-Register one file directly:
-
-```bash
-python3 scripts/ingest_asset.py \
-  --asset-id asset_char001_voice_neutral \
-  --path /srv/nvme-data/containers/projects/microdramas/characters/char001/voice/neutral.wav \
-  --type audio \
-  --role canonical_reference \
-  --character-id char001 \
-  --voice-id voice_char001
-```
-
-Register a production render and its linked assets from a render manifest:
-
-```bash
-python3 scripts/ingest_render_manifest.py \
-  --render-manifest /srv/nvme-data/containers/projects/microdramas/orchestrator_runs/episode_smoke_001/scene_smoke_001/render_manifest.dry_run.json
-```
-
-The render manifest importer creates or updates `Episode`, `Scene`, `RenderRun`, `Asset`, `Character`, `Voice`, and `VisualIdentity` nodes, then links them with `PART_OF`, `RENDERS`, `USES_ASSET`, `PRODUCED_ASSET`, `APPEARS_IN`, `HAS_VOICE`, and `HAS_VISUAL_IDENTITY`.
-
-Relative asset paths in a render manifest are resolved under `MICRODRAMA_PROJECT_ROOT`, which defaults to
-`/srv/nvme-data/containers/projects/microdramas` for the standalone script.
-
-## Ingest Story Events
-
-Apply durable story consequences from an event JSON file:
+### Ingest a Story Event
 
 ```bash
 python3 scripts/ingest_story_event.py \
   --event-json examples/events/private_warning_escalation.json
 ```
 
-The event importer creates or updates `Event`, `Character`, `Episode`, `Scene`, `Arc`, `Secret`, and `Memory` nodes. It also applies bounded deltas to directed `RELATES_TO` edges so trust, resentment, attraction, dependency, tension, fear of loss, and power imbalance persist between scenes.
-
-Export compressed prompt context for a character or scene:
+### Export Character Memory Context
 
 ```bash
 python3 scripts/export_memory_context.py \
-  --scene-manifest /srv/nvme-data/containers/projects/microdramas/scenes/smoke_scene_manifest.json \
-  --output-md /tmp/smoke_memory_context.md \
-  --output-json /tmp/smoke_memory_context.json
+  --scene-manifest /path/to/scene_manifest.json \
+  --output-md /tmp/memory_context.md \
+  --output-json /tmp/memory_context.json
 ```
 
-Use the Markdown export in planner prompts and the JSON export for automation.
+The Markdown export is designed for planner prompts. The JSON export is for automation.
 
-## Model Shape
+## Who This Is For
 
-Core node labels:
+- **Narrative AI researchers** building story generation systems that need persistent emotional state
+- **Game developers** prototyping NPC relationship systems with structured drama
+- **Interactive fiction** authors who want mechanical consequences for player choices
+- **AI video pipelines** that need to track character continuity across generated scenes
 
-- `World`
-- `Character`
-- `Voice`
-- `VisualIdentity`
-- `BodyIdentity`
-- `Asset`
-- `Location`
-- `Organization`
-- `Episode`
-- `Scene`
-- `Event`
-- `Arc`
-- `Secret`
-- `Desire`
-- `Memory`
-- `ReputationSnapshot`
-- `RenderRun`
-- `Trait`
-- `StyleTag`
+## Full Documentation
 
-Important relationship:
-
-- `(:Character)-[:RELATES_TO]->(:Character)`
-
-Relationship edges carry drama state:
-
-- `attraction`
-- `trust`
-- `resentment`
-- `dependency`
-- `tension`
-- `fear_of_loss`
-- `power_imbalance`
-
-That edge state is where most of the drama lives.
+- [`docs/relationship_update_rules.md`](docs/relationship_update_rules.md) -- edge field ranges, delta examples, governor rules
+- [`docs/event_taxonomy.md`](docs/event_taxonomy.md) -- event types, required fields, quality rules
+- [`docs/narrative_governors.md`](docs/narrative_governors.md) -- continuity enforcement, episode shape, anti-patterns
+- [`docs/memory_compression.md`](docs/memory_compression.md) -- exporting compressed context for LLM prompts
